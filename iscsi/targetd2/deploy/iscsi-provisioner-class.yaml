@@ -1,0 +1,17 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: iscsi-targetd-vg-targetd
+provisioner: iscsi-targetd
+parameters:
+# this is the iscsi server iqn  
+  iqn: iqn.2019-10.test.com:storage.target01
+  
+# this is the iscsi interface to be used, the default is default
+# iscsiInterface: default
+
+# This is the filesystem you want your volume to be formatted with, default xfs
+# fsType: xfs
+
+# Whether the volume should be mounted in readonly mode, default false
+# readonly: false
