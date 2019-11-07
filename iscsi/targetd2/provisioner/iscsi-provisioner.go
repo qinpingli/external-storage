@@ -69,7 +69,7 @@ func (p *iscsiProvisioner) Provision(options controller.VolumeOptions) (*v1.Pers
 	annotations["path"] = path
 
 	items := strings.Split(path, "/")
-	lunname := items[len(items)-1]
+	lunname := strings.TrimSuffix(items[len(items)-1], "\n")
 	lun, _ := strconv.Atoi(strings.TrimPrefix(lunname, "lun"))
 
 	targetPortal := fmt.Sprintf("%s:%s", os.Getenv("TARGET_IP"), os.Getenv("TARGET_PORT"))
