@@ -17,10 +17,10 @@ oc create -f deploy/iscsi-provisioner-dc.yaml
 Suppose we run provisioner in the bootstrap node
 ```
 oc create -f deploy/iscsi-provisioner-class.yam
-mkdir /sysroot/iscsi_disks
-mkdir /sysroot/kube
-cp <kubeconfig> to /sysroot/kube
-podman run -d --rm --name iscsi-provisioner --privileged --network host -v /lib/modules:/lib/modules -v /sysroot/kube:/kube -v /sysroot/iscsi_disks:/iscsi_disks -e TARGET_IP=10.0.149.55 -e TARGET_PORT=3260 docker.io/aosqe/iscsi-provisioner start --kubeconfig=/kube/kubeconfig
+mkdir /mnt/iscsi_disks
+mkdir /mnt/kube
+cp <kubeconfig> to /mnt/kube
+podman run -d --rm --name iscsi-provisioner --privileged --network host -v /lib/modules:/lib/modules -v /mnt/kube:/kube -v /mnt/iscsi_disks:/iscsi_disks -e TARGET_IP=10.0.149.55 -e TARGET_PORT=3260 docker.io/aosqe/iscsi-provisioner start --kubeconfig=/kube/kubeconfig
 ```
 
 ## What't the different with the iSCSI-targetd provisioner

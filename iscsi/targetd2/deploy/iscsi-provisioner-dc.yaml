@@ -42,5 +42,5 @@ spec:
           path: /lib/modules
         name: kernel
       - hostPath:
-          path: /sysroot/iscsi_disks
+          path: /mnt/iscsi_disks
         name: iscsi-disks
