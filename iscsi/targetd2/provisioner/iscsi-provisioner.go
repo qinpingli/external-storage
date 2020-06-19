@@ -73,7 +73,7 @@ func (p *iscsiProvisioner) Provision(options controller.VolumeOptions) (*v1.Pers
 	lun, _ := strconv.Atoi(strings.TrimPrefix(lunname, "lun"))
 
 	targets := strings.Split(os.Getenv("TARGET"), ",")
-	if strings.Count(targets) == 0 {
+	if len(targets) == 0 {
 		log.Fatalln("No iscsi target is defined")
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (p *iscsiProvisioner) Provision(options controller.VolumeOptions) (*v1.Pers
 		log.Debugln("target[%d]: %s", i, targets[i])
 	}
 
-	portals := fmt.Println(strings.Join(targets[:], ","))
+	portals := strings.Join(targets[:], ",")
 	portals = fmt.Sprintf("[%s]", portals)
 	log.Debugln("portals", portals)
 
