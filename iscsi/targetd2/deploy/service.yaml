@@ -1,0 +1,33 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: iscsi-tgt-1
+  namespace: iscsi-provisioner
+  labels:
+    app: iscsi-tgt
+spec:
+  ports:
+  - port: 3260
+    name: tgt
+    targetPort: 3260
+    protocol: TCP
+  selector:
+    app: iscsi-provisioner
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iscsi-tgt-2
+  namespace: iscsi-provisioner
+  labels:
+    app: iscsi-tgt
+spec:
+  ports:
+  - port: 3260
+    name: tgt
+    targetPort: 3260
+    protocol: TCP
+  selector:
+    app: iscsi-provisioner

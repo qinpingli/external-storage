@@ -72,7 +72,21 @@ func (p *iscsiProvisioner) Provision(options controller.VolumeOptions) (*v1.Pers
 	lunname := strings.TrimSuffix(items[len(items)-1], "\n")
 	lun, _ := strconv.Atoi(strings.TrimPrefix(lunname, "lun"))
 
-	targetPortal := fmt.Sprintf("%s:%s", os.Getenv("TARGET_IP"), os.Getenv("TARGET_PORT"))
+	targets := strings.Split(os.Getenv("TARGET"), ",")
+	if strings.Count(targets) == 0 {
+		log.Fatalln("No iscsi target is defined")
+		return nil, err
+	}
+
+	for i, item := range targets {
+		item = fmt.Sprintf("'%s'", item)
+		targets[i] = item
+		log.Debugln("target[%d]: %s", i, targets[i])
+	}
+
+	portals := fmt.Println(strings.Join(targets[:], ","))
+	portals = fmt.Sprintf("[%s]", portals)
+	log.Debugln("portals", portals)
 
 	var pv *v1.PersistentVolume
 	if string(*options.PVC.Spec.VolumeMode) == "" || strings.ToLower(string(*options.PVC.Spec.VolumeMode)) == "filesystem" {
@@ -96,7 +110,8 @@ func (p *iscsiProvisioner) Provision(options controller.VolumeOptions) (*v1.Pers
 				VolumeMode: options.PVC.Spec.VolumeMode,
 				PersistentVolumeSource: v1.PersistentVolumeSource{
 					ISCSI: &v1.ISCSIPersistentVolumeSource{
-						TargetPortal: targetPortal,
+						TargetPortal: targets[0],
+						Portals:      portals,
 						IQN:          options.Parameters["iqn"],
 						Lun:          int32(lun),
 						ReadOnly:     getReadOnly(options.Parameters["readonly"]),
@@ -122,7 +137,8 @@ func (p *iscsiProvisioner) Provision(options controller.VolumeOptions) (*v1.Pers
 				VolumeMode: options.PVC.Spec.VolumeMode,
 				PersistentVolumeSource: v1.PersistentVolumeSource{
 					ISCSI: &v1.ISCSIPersistentVolumeSource{
-						TargetPortal: targetPortal,
+						TargetPortal: targets[0],
+						Portals:      portals,
 						IQN:          options.Parameters["iqn"],
 						Lun:          int32(lun),
 						ReadOnly:     getReadOnly(options.Parameters["readonly"]),
@@ -216,6 +232,7 @@ func initTarget(options controller.VolumeOptions) error {
 func createTarget(options controller.VolumeOptions) error {
 
 	targetName := getTargetName(options)
+	targets := getPortals(options)
 
 	//targetcli /iscsi create ${targetName}
 	out, err := exec.Command("sh", "-c", fmt.Sprintf("targetcli /iscsi create %s", targetName)).Output()
@@ -245,11 +262,14 @@ func createTarget(options controller.VolumeOptions) error {
 		return err
 	}
 
-	// targetcli /iscsi/${TARGET_NAME}/tpg1/portals create ${targetIP}
-	out, err = exec.Command("sh", "-c", fmt.Sprintf("targetcli /iscsi/%s/tpg1/portals create %s %s", targetName, os.Getenv("TARGET_IP"), os.Getenv("TARGET_PORT"))).Output()
-	if err != nil {
-		log.Errorln("Create portal for target failed with portal, targetName, err, output: ", os.Getenv("TARGET_IP"), os.Getenv("TARGET_PORT"), targetName, err, out)
-		return err
+	for _, t := range targets {
+		config := strings.Split(t, ":")
+		// targetcli /iscsi/${TARGET_NAME}/tpg1/portals create ${targetIP}
+		out, err = exec.Command("sh", "-c", fmt.Sprintf("targetcli /iscsi/%s/tpg1/portals create %s %s", targetName, config[0], config[1])).Output()
+		if err != nil {
+			log.Errorln("Create portal for target failed with portal, targetName, err, output: ", config[0], config[1], targetName, err, out)
+			return err
+		}
 	}
 
 	return nil

@@ -1,9 +1,13 @@
-kind: DeploymentConfig
-apiVersion: v1
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
   name: iscsi-provisioner
   namespace: iscsi-provisioner
 spec:
+  selector:
+    matchLabels:
+      app: iscsi-provisioner
+  serviceName: "iscsi-tgt-1"
   replicas: 1
   template:
     metadata:
@@ -23,19 +27,13 @@ spec:
               value: iscsi-targetd
             - name: LOG_LEVEL
               value: debug
-            - name: TARGET_PORT
-              value: "3260"
-            - name: TARGET_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
+            - name: TARGET
+              value: "#TARGET#"
           volumeMounts:
           - mountPath: /lib/modules
             name: kernel
           - mountPath: /iscsi_disks
             name: iscsi-disks
-          hostNetwork: true
-          hostPID: true
       serviceAccount: iscsi-provisioner
       volumes:
       - hostPath:
